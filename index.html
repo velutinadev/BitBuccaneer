@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BitBuccaneer - Torrent Search Engine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0d0221 0%, #1a0f4e 25%, #0d2b6e 55%, #1a0840 80%, #0d0221 100%);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 1px 24px rgba(0, 0, 0, 0.35);
+            padding: 12px 24px;
+            padding-top: 40px;
+            -webkit-app-region: drag;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            -webkit-app-region: no-drag;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            font-size: 36px;
+        }
+
+        .logo-text h1 {
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 700;
+        }
+
+        .logo-text p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .donate-btn {
+            background: linear-gradient(to right, rgba(236, 72, 153, 0.85), rgba(244, 63, 94, 0.85));
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(236, 72, 153, 0.35);
+            transition: all 0.3s;
+        }
+
+        .donate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(236, 72, 153, 0.5);
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 32px 24px 0;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #resultsContainer {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 24px;
+        }
+
+        #resultsContainer::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #resultsContainer::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #resultsContainer::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .search-box {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .search-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 16px;
+            right: 16px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.55), transparent);
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .search-input-container {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.38);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: rgba(120, 180, 255, 0.65);
+            background: rgba(255, 255, 255, 0.16);
+            box-shadow: 0 0 0 3px rgba(80, 140, 255, 0.15);
+        }
+
+        .search-btn {
+            padding: 14px 32px;
+            background: linear-gradient(to right, rgba(59, 130, 246, 0.9), rgba(99, 102, 241, 0.9));
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .search-btn:hover:not(:disabled) {
+            background: linear-gradient(to right, rgba(37, 99, 235, 0.95), rgba(79, 70, 229, 0.95));
+            box-shadow: 0 6px 24px rgba(59, 130, 246, 0.55);
+            transform: translateY(-1px);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .reset-btn {
+            padding: 14px 32px;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(-1px);
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .category-btn {
+            padding: 10px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .category-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .category-btn.active {
+            background: rgba(80, 140, 255, 0.35);
+            border-color: rgba(100, 160, 255, 0.55);
+            color: white;
+            box-shadow: 0 0 16px rgba(80, 140, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .sort-options {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .sort-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .sort-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .sort-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .sort-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .source-options {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .source-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.65);
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 20px;
+            transition: background 0.2s;
+        }
+
+        .source-checkbox:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .source-checkbox input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .source-checkbox input[type="checkbox"]:checked + span {
+            color: rgba(140, 195, 255, 1);
+            font-weight: 600;
+        }
+
+        .results {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .result-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 16px;
+            right: 16px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.38), transparent);
+        }
+
+        .result-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.28);
+        }
+
+        .result-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 16px;
+        }
+
+        .result-poster {
+            width: 60px;
+            height: 85px;
+            border-radius: 8px;
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .result-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 12px;
+            word-break: break-word;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 24px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot.green { background: #34d399; box-shadow: 0 0 6px rgba(52, 211, 153, 0.7); }
+        .dot.red   { background: #f87171; box-shadow: 0 0 6px rgba(248, 113, 113, 0.7); }
+
+        .meta-value {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .source-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .magnet-btn {
+            padding: 12px 24px;
+            background: linear-gradient(to right, rgba(16, 185, 129, 0.85), rgba(20, 184, 166, 0.85));
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .magnet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+        }
+
+        .empty-text {
+            color: rgba(255, 255, 255, 0.38);
+        }
+
+        .footer {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 10px 24px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .footer p {
+            margin-bottom: 4px;
+        }
+
+        .version-label {
+            position: fixed;
+            bottom: 8px;
+            right: 12px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.18);
+            pointer-events: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.65);
+            font-weight: 600;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.12);
+            border-top-color: rgba(120, 180, 255, 0.9);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: rgba(255, 185, 185, 1);
+            padding: 16px;
+            border-radius: 16px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .history-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: rgba(12, 8, 35, 0.88);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            display: none;
+            overflow: hidden;
+        }
+
+        .history-list {
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 3px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 14px;
+            transition: background 0.15s;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .history-icon {
+            color: rgba(255, 255, 255, 0.32);
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .history-clear {
+            padding: 10px 16px;
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255, 120, 120, 0.9);
+            cursor: pointer;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.15s;
+        }
+
+        .history-clear:hover {
+            background: rgba(255, 80, 80, 0.1);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-box {
+            background: rgba(255, 255, 255, 0.13);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 24px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+            padding: 40px 36px 32px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.55), transparent);
+        }
+
+        .modal-icon {
+            width: 80px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 12px;
+        }
+
+        .modal-body {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .modal-close-btn {
+            padding: 12px 32px;
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .modal-link {
+            color: rgba(140, 195, 255, 1);
+            text-decoration: none;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(140, 195, 255, 0.4);
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .modal-link:hover {
+            color: white;
+            border-bottom-color: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo">🏴‍☠️</div>
+                <div class="logo-text">
+                    <h1>BitBuccaneer</h1>
+                    <p>Torrent Search Engine</p>
+                </div>
+            </div>
+            <button class="donate-btn" onclick="handleDonate()">
+                <span>❤️</span>
+                <span>Support Us</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="search-box">
+            <div class="search-input-wrapper">
+                <div class="search-input-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search for torrents..." onkeypress="handleKeyPress(event)" onfocus="showHistory()" onblur="hideHistory()">
+                    <div class="history-dropdown" id="historyDropdown"></div>
+                </div>
+                <button class="search-btn" id="searchBtn" onclick="handleSearch()">Search</button>
+                <button class="reset-btn" id="resetBtn" onclick="handleReset()">Reset</button>
+            </div>
+
+            <div class="categories">
+                <button class="category-btn active" data-category="all" onclick="setCategory('all')">🌐 All</button>
+                <button class="category-btn" data-category="movies" onclick="setCategory('movies')">🎬 Movies</button>
+                <button class="category-btn" data-category="tv" onclick="setCategory('tv')">📺 TV Shows</button>
+                <button class="category-btn" data-category="music" onclick="setCategory('music')">🎵 Music</button>
+                <button class="category-btn" data-category="games" onclick="setCategory('games')">🎮 Games</button>
+                <button class="category-btn" data-category="software" onclick="setCategory('software')">💻 Software</button>
+                <button class="category-btn" data-category="anime" onclick="setCategory('anime')">🎌 Anime</button>
+            </div>
+
+            <div class="sort-options">
+                <span class="sort-label">📊 Sort by:</span>
+                <button class="sort-btn active" data-sort="seeders" onclick="setSort('seeders')">Seeders</button>
+                <button class="sort-btn" data-sort="leechers" onclick="setSort('leechers')">Leechers</button>
+                <button class="sort-btn" data-sort="size" onclick="setSort('size')">Size</button>
+                <button class="sort-btn" data-sort="name" onclick="setSort('name')">Name</button>
+            </div>
+
+            <div class="source-options">
+                <span class="sort-label">🌐 Sources:</span>
+                <label class="source-checkbox">
+                    <input type="checkbox" id="source-yts" checked onchange="toggleSource('YTS')">
+                    <span>YTS</span>
+                </label>
+                <label class="source-checkbox">
+                    <input type="checkbox" id="source-nyaa" checked onchange="toggleSource('Nyaa')">
+                    <span>Nyaa</span>
+                </label>
+                <label class="source-checkbox">
+                    <input type="checkbox" id="source-limetorrents" checked onchange="toggleSource('LimeTorrents')">
+                    <span>LimeTorrents</span>
+                </label>
+                <label class="source-checkbox">
+                    <input type="checkbox" id="source-torrentdownloads" checked onchange="toggleSource('TorrentDownloads')">
+                    <span>TorrentDownloads</span>
+                </label>
+            </div>
+        </div>
+
+        <div id="resultsContainer">
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3 class="empty-title">Start Your Search</h3>
+                <p class="empty-text">Search for torrents across multiple sources including YTS, Nyaa, LimeTorrents, and TorrentDownloads</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>BitBuccaneer searches public torrent indexers. It does not host any content.</p>
+        <p>Always respect copyright laws in your jurisdiction.</p>
+    </div>
+
+    <span class="version-label">v1.0.0</span>
+
+    <div id="donateModal" class="modal-overlay" onclick="closeDonateModal()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <img src="./icon.png" class="modal-icon" alt="BitBuccaneer">
+            <div class="modal-title">Support BitBuccaneer</div>
+            <div class="modal-body">
+                💝 Your support helps keep BitBuccaneer free and ad-free.<br><br>
+                Donations are coming soon — we are still working on the best way to accept your support!<br><br>
+                In the meantime, check out our <a class="modal-link" onclick="shell.openExternal('https://github.com/velutina-labs')">GitHub</a> for updates and other projects.
+            </div>
+            <button class="modal-close-btn" onclick="closeDonateModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer, shell } = require('electron');
+        let currentCategory = 'all';
+        let currentSort = 'seeders';
+        let allResults = [];
+        let enabledSources = ['YTS', 'Nyaa', 'LimeTorrents', 'TorrentDownloads'];
+
+        function loadHistory() {
+            return JSON.parse(localStorage.getItem('searchHistory') || '[]');
+        }
+
+        function saveToHistory(query) {
+            let history = loadHistory();
+            history = history.filter(h => h !== query);
+            history.unshift(query);
+            history = history.slice(0, 99);
+            localStorage.setItem('searchHistory', JSON.stringify(history));
+        }
+
+        function showHistory() {
+            const history = loadHistory();
+            const dropdown = document.getElementById('historyDropdown');
+            if (history.length === 0) return;
+
+            const itemsHTML = history.map(q => `
+                <div class="history-item" onmousedown='selectHistoryItem(${JSON.stringify(q)})'>
+                    <span class="history-icon">🕐</span>
+                    <span>${escapeHtml(q)}</span>
+                </div>
+            `).join('');
+
+            dropdown.innerHTML = `<div class="history-list">${itemsHTML}</div><div class="history-clear" onmousedown="clearHistory()">Clear history</div>`;
+            dropdown.style.display = 'block';
+        }
+
+        function hideHistory() {
+            document.getElementById('historyDropdown').style.display = 'none';
+        }
+
+        function selectHistoryItem(query) {
+            document.getElementById('searchInput').value = query;
+            hideHistory();
+            handleSearch();
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('searchHistory');
+            hideHistory();
+        }
+
+        function toggleSource(source) {
+            const index = enabledSources.indexOf(source);
+            if (index > -1) {
+                enabledSources.splice(index, 1);
+            } else {
+                enabledSources.push(source);
+            }
+            console.log('Enabled sources:', enabledSources);
+
+            if (allResults.length > 0) {
+                let filteredResults = allResults.filter(t => enabledSources.includes(t.source));
+                if (currentCategory !== 'all') {
+                    filteredResults = filteredResults.filter(t => t.category === currentCategory || t.category === 'mixed');
+                }
+                sortAndDisplayResults(filteredResults);
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') handleSearch();
+        }
+
+        async function handleSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const query = searchInput.value.trim();
+            const searchBtn = document.getElementById('searchBtn');
+
+            if (query === '') {
+                alert('Please enter a search query');
+                return;
+            }
+
+            saveToHistory(query);
+            hideHistory();
+            showLoading();
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+
+            try {
+                const result = await ipcRenderer.invoke('search-torrents', query, currentCategory);
+
+                if (result.success) {
+                    allResults = result.torrents;
+                    let filteredResults = allResults.filter(t => enabledSources.includes(t.source));
+
+                    if (currentCategory !== 'all') {
+                        filteredResults = filteredResults.filter(t => t.category === currentCategory || t.category === 'mixed');
+                    }
+
+                    sortAndDisplayResults(filteredResults);
+                } else {
+                    showError('Search failed: ' + result.error);
+                }
+            } catch (error) {
+                showError('An error occurred while searching. Please try again.');
+                console.error('Search error:', error);
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Search';
+            }
+        }
+
+        function handleReset() {
+            document.getElementById('searchInput').value = '';
+            allResults = [];
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <h3 class="empty-title">Start Your Search</h3>
+                    <p class="empty-text">Search for torrents across multiple sources including YTS, Nyaa, LimeTorrents, and TorrentDownloads</p>
+                </div>
+            `;
+        }
+
+        function showLoading() {
+            document.getElementById('resultsContainer').innerHTML = '<div class="loading"><div class="spinner"></div><p>Searching across multiple torrent sites...</p></div>';
+        }
+
+        function showError(message) {
+            document.getElementById('resultsContainer').innerHTML = `<div class="error-message"><strong>⚠️ Error:</strong> ${message}</div>`;
+        }
+
+        function sortAndDisplayResults(results) {
+            if (results.length === 0) {
+                document.getElementById('resultsContainer').innerHTML = '<div class="empty-state"><div class="empty-icon">😕</div><h3 class="empty-title">No Results Found</h3><p class="empty-text">Try a different search term, category, or enable more sources</p></div>';
+                return;
+            }
+
+            const sortedResults = [...results].sort((a, b) => {
+                switch(currentSort) {
+                    case 'seeders': return b.seeders - a.seeders;
+                    case 'leechers': return b.leechers - a.leechers;
+                    case 'name': return a.name.localeCompare(b.name);
+                    case 'size': return parseSize(b.size) - parseSize(a.size);
+                    default: return 0;
+                }
+            });
+
+            displayResults(sortedResults);
+        }
+
+        function parseSize(sizeStr) {
+            if (!sizeStr) return 0;
+            const units = { 'B': 1, 'KB': 1024, 'MB': 1024**2, 'GB': 1024**3, 'TB': 1024**4 };
+            const match = sizeStr.match(/([0-9.]+)\s*([A-Z]+)/i);
+            if (!match) return 0;
+            return parseFloat(match[1]) * (units[match[2].toUpperCase()] || 0);
+        }
+
+        function displayResults(results) {
+            const resultsHTML = results.map(result => `
+                <div class="result-item">
+                    <div class="result-content">
+                        ${result.thumbnail ? `<img class="result-poster" src="${result.thumbnail}" alt="">` : ''}
+                        <div class="result-info">
+                            <div class="result-title">${escapeHtml(result.name)}</div>
+                            <div class="result-meta">
+                                <span class="meta-item"><span class="dot green"></span><span class="meta-value">${result.seeders}</span><span>seeders</span></span>
+                                <span class="meta-item"><span class="dot red"></span><span class="meta-value">${result.leechers}</span><span>leechers</span></span>
+                                <span class="meta-item"><span class="meta-value">${result.size || 'Unknown'}</span></span>
+                                <span class="source-badge">${result.source}</span>
+                            </div>
+                        </div>
+                        <button class="magnet-btn" onclick='copyMagnet(\`${result.magnetLink}\`)'><span>📥</span><span>Get Magnet</span></button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('resultsContainer').innerHTML = `<div class="results">${resultsHTML}<div style="text-align: center; padding: 20px; color: #64748b;">Found ${results.length} torrents</div></div>`;
+        }
+
+        function escapeHtml(text) {
+            const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function copyMagnet(magnet) {
+            require('electron').clipboard.writeText(magnet);
+            alert('Magnet link copied to clipboard!\n\nYou can now paste it into your torrent client (qBittorrent, Transmission, etc.)');
+        }
+
+        function setCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.category === category) btn.classList.add('active');
+            });
+            if (allResults.length > 0) {
+                let filteredResults = allResults.filter(t => enabledSources.includes(t.source));
+                if (currentCategory !== 'all') {
+                    filteredResults = filteredResults.filter(t => t.category === currentCategory || t.category === 'mixed');
+                }
+                sortAndDisplayResults(filteredResults);
+            }
+        }
+
+        function setSort(sort) {
+            currentSort = sort;
+            document.querySelectorAll('.sort-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.sort === sort) btn.classList.add('active');
+            });
+            if (allResults.length > 0) {
+                let filteredResults = allResults.filter(t => enabledSources.includes(t.source));
+                if (currentCategory !== 'all') {
+                    filteredResults = filteredResults.filter(t => t.category === currentCategory || t.category === 'mixed');
+                }
+                sortAndDisplayResults(filteredResults);
+            }
+        }
+
+        function handleDonate() {
+            document.getElementById('donateModal').style.display = 'flex';
+        }
+
+        function closeDonateModal() {
+            document.getElementById('donateModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

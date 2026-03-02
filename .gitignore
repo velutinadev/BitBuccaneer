@@ -1,0 +1,4 @@
+node_modules/
+BitBuccaneer-darwin-x64/
+*.icns
+.DS_Store
