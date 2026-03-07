@@ -3,3 +3,4 @@ BitBuccaneer-darwin-x64/
 *.icns
 .DS_Store
 dist/
+.claude/
