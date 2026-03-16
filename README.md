@@ -1,3 +1,6 @@
+<img width="1534" height="1249" alt="Screenshot 2026-03-03 at 9 36 07 PM" src="https://github.com/user-attachments/assets/12f77f68-2712-4e21-bb57-0667e0b5b594" />
+
+
 # BitBuccaneer 🏴‍☠️
 
 A clean, native Mac app for searching torrents — without the ads, pop-ups, and general chaos of torrent websites.
