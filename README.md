@@ -1,4 +1,4 @@
-<img width="1534" height="1249" alt="Screenshot 2026-03-03 at 9 36 07 PM" src="https://github.com/user-attachments/assets/12f77f68-2712-4e21-bb57-0667e0b5b594" />
+<img width="1215" height="822" alt="Screenshot 2026-03-16 at 7 47 48 PM" src="https://github.com/user-attachments/assets/0fc032ec-d778-48f4-ba1c-18d2eedad1f2" />
 
 
 # BitBuccaneer 🏴‍☠️
